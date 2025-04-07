@@ -279,6 +279,10 @@ async function getMetadata() {
     const participantId = sessionStorage.getItem('participantId') || surveyData.participantId;
     let treatmentGroup = sessionStorage.getItem('treatmentGroup') || surveyData.treatmentGroup;
     treatmentGroup = Number(treatmentGroup);
+
+    if (!((treatmentGroup === 0) || (treatmentGroup === 1))) {
+        treatmentGroup = 0
+    }
     
     sessionStorage.setItem('participantId', participantId);
     sessionStorage.setItem('treatmentGroup', treatmentGroup);
