@@ -408,6 +408,7 @@ async function sendUserMessage(text, clientSideMsgId) {
   sessionStorage.setItem('clientSideMsgId', clientSideMsgId);
   const treatmentGroup = sessionStorage.getItem('treatmentGroup');
   let activityId;
+
   while (true) {
     try{
       const res = await fetch('/sendmessage', {
@@ -415,13 +416,26 @@ async function sendUserMessage(text, clientSideMsgId) {
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({ conversationId, text, treatmentGroup, clientSideMsgId })
       });
+
       if (!res.ok) {
         throw new Error(`sendUserMessage() - HTTP error! status: ${res.status}`);
       }
+
       const respData = await res.json();
-      activityId = respData.id;
-      linkUserMessageWithActivityId(activityId, clientSideMsgId);
-      break;
+
+      if (respData.id) {
+        activityId = respData.id;
+        linkUserMessageWithActivityId(activityId, clientSideMsgId);
+        break;
+      }
+
+      if (respData.status === 'in_progress') {
+        await new Promise(r => setTimeout(r, 2000));
+        continue;
+      }
+
+      throw new Error(`Unknown server response: ${JSON.stringify(respData)}`);
+
     } catch (error) {
       console.error('Error sending user message. Retrying.', error);
       await new Promise(r => setTimeout(r, 2000)); 
